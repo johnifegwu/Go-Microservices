@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  goservices.productapi:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "3000:3000" # Map the container port to the host port
+    environment:
+      - ENVIRONMENT=production
+      - DB_USER=admin
+      - DB_PASSWORD=admin@1798goServicesDb
+      - DB_NAME=goServicesDb
+      - DB_HOST=goservices.postgresdb
+      - DB_PORT=5432
+    depends_on:
+      - goservices.postgresdb
+
+  goservices.postgresdb:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin@1798goServicesDb
+      POSTGRES_DB: goServicesDb
+    ports:
+      - "5432:5432" # Map the container port to the host port
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
