@@ -15,8 +15,8 @@ RUN go mod download
 COPY . .
 
 # Copy the SQL files (Optional if they are required at runtime)
-COPY ./infrastructure/data.sql /infrastructure/data.sql
-COPY ./infrastructure/schema.sql /infrastructure/schema.sql
+COPY ./internal/infrastructure/data.sql /internal/infrastructure/data.sql
+COPY ./internal/infrastructure/schema.sql /internal/infrastructure/schema.sql
 
 # Build the main application
 RUN go build -o /go/bin/app .

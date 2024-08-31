@@ -1,25 +1,43 @@
 package database
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/johnifegwu/go-microservices/models"
+	"github.com/johnifegwu/go-microservices/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-var (
+type DatabaseClient interface {
+	Ready() bool
+
+	GetAllProducts(ctx context.Context, pageIndex string, pageSize string) ([]models.Product, error)
+
+	GetProductById(ctx context.Context, productId string) (models.Product, error)
+
+	GetAllProductsByVendor(ctx context.Context, vendorID string, pageIndex string, pageSize string) ([]models.Product, error)
+
+	GetAllCustomers(ctx context.Context, emailAddress string) ([]models.Customer, error)
+
+	GetAllServices(ctx context.Context, pageIndex string, pageSize string) ([]models.Service, error)
+
+	GetAllVendors(ctx context.Context, pageIndex string, pageSize string) ([]models.Vendor, error)
+}
+
+type Client struct {
 	DB *gorm.DB
-)
+}
 
 //go:embed data.sql
 var fdat embed.FS
 
-func InitDb() {
+func NewDatabaseClient() (DatabaseClient, error) {
+
 	// Retrieve environment variables
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
@@ -31,14 +49,22 @@ func InitDb() {
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		dbUser, dbPassword, dbName, dbHost, dbPort)
 
-	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		// NamingStrategy: schema.NamingStrategy{
+		// 	TablePrefix: "wisdom.",
+		// },
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+		QueryFields: true,
+	})
+
 	if err != nil {
-		log.Fatal("Failed to connect to the database:", err)
+		return nil, err
 	}
 
 	// Configure the connection pool
-	SqlDB, err := DB.DB()
+	SqlDB, err := db.DB()
 	if err != nil {
 		log.Fatal("Failed to get the underlying database object:", err)
 	}
@@ -46,12 +72,29 @@ func InitDb() {
 	SqlDB.SetMaxIdleConns(10)
 	SqlDB.SetConnMaxLifetime(time.Minute * 5)
 
+	client := Client{
+		DB: db,
+	}
+
 	// Migrate the schema and seed data
-	MigrateAndSeedData()
+	MigrateAndSeedData(client.DB)
+
+	return client, nil
 }
 
-func MigrateAndSeedData() {
+func (c Client) Ready() bool {
+	var ready string
+	tx := c.DB.Raw("SELECT 1 as ready").Scan(&ready)
+	if tx.Error != nil {
+		return false
+	}
+	if ready == "1" {
+		return true
+	}
+	return false
+}
 
+func MigrateAndSeedData(DB *gorm.DB) {
 	// Create the wisdom schema
 	var dbErr = DB.Exec("CREATE SCHEMA IF NOT EXISTS wisdom;").Error
 	if dbErr != nil {

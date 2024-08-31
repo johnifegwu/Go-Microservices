@@ -24,6 +24,7 @@ services:
       - "3000:3000" # Map the container port to the host port
     environment:
       - ENVIRONMENT=production
+      - DEFAULTPORT=3000
       - DB_USER=admin
       - DB_PASSWORD=admin@1798goServicesDb
       - DB_NAME=goServicesDb
