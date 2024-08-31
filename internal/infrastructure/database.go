@@ -24,6 +24,8 @@ type DatabaseClient interface {
 
 	GetAllCustomers(ctx context.Context, emailAddress string) ([]models.Customer, error)
 
+	AddCustomer(ctx context.Context, customer *models.Customer) (*models.Customer, error)
+
 	GetAllServices(ctx context.Context, pageIndex string, pageSize string) ([]models.Service, error)
 
 	GetAllVendors(ctx context.Context, pageIndex string, pageSize string) ([]models.Vendor, error)

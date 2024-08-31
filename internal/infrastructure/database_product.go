@@ -64,7 +64,7 @@ func (c Client) GetAllProductsByVendor(ctx context.Context, vendorID string, pag
 
 	// Query the products table with LIMIT and OFFSET for pagination
 	var products []models.Product
-	result := c.DB.WithContext(ctx).Where(models.Product{ProductID: parsedUUID}).Limit(pSize).Offset(offset).Order("name").Find(&products)
+	result := c.DB.WithContext(ctx).Where(models.Product{VendorID: parsedUUID}).Limit(pSize).Offset(offset).Order("name").Find(&products)
 
 	if err != nil {
 		return products, err

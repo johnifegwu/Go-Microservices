@@ -26,7 +26,7 @@ func (s *EchoServer) GetProductById(ctx echo.Context) error {
 }
 
 func (s *EchoServer) GetAllProductsByVendor(ctx echo.Context) error {
-	vendorid := ctx.QueryParam("vendorid")
+	vendorid := ctx.QueryParam("id")
 	pageindex := ctx.QueryParam("pageindex")
 	pagesize := ctx.QueryParam("pagesize")
 	products, err := s.DB.GetAllProductsByVendor(ctx.Request().Context(), vendorid, pageindex, pagesize)
