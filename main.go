@@ -25,7 +25,7 @@ func main() {
 	router.Get("/products", productroute.GetProductsHandler)
 
 	//Orders Router
-	router.Get("/orders", getOrdersHandler)
+	router.Get("/productbyid", productroute.GetProductByIdHandler)
 
 	server := &http.Server{
 		Addr:    ":3000",
@@ -39,8 +39,4 @@ func main() {
 	if err != nil {
 		fmt.Println("Failed to listen to server", err)
 	}
-}
-
-func getOrdersHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("[{\"orderId\": 100, \"productId\":\"gdhfg7473\", \"productName\":\"Samsung S22 Ultra\"}]"))
 }
