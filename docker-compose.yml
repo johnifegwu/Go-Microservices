@@ -1,7 +1,22 @@
-version: '3.8'
-
 services:
+
+  goservices.postgresdb:
+    container_name: goservices.postgresdb
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin@1798goServicesDb
+      POSTGRES_DB: goServicesDb
+    ports:
+      - "5432:5432" # Map the container port to the host port
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - inventorybackend
+
   goservices.productapi:
+    container_name: goservices.productapi
+    image: ${DOCKER_REGISTRY-}goservices.productapi
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -14,19 +29,15 @@ services:
       - DB_NAME=goServicesDb
       - DB_HOST=goservices.postgresdb
       - DB_PORT=5432
+    networks:
+      - inventorybackend
     depends_on:
       - goservices.postgresdb
 
-  goservices.postgresdb:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin@1798goServicesDb
-      POSTGRES_DB: goServicesDb
-    ports:
-      - "5432:5432" # Map the container port to the host port
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+networks:
+  inventorybackend:
+    name: inventorybackend
+    driver: bridge
 
 volumes:
   postgres_data:
