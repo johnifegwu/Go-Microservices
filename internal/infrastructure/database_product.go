@@ -13,24 +13,35 @@ import (
 )
 
 func (c Client) SearchProducts(ctx context.Context, searchterm string, pageindex string, pagesize string) ([]models.Product, error) {
+	// Convert pageindex and pagesize to integers with proper error handling
 	pIndex, err := strconv.Atoi(pageindex)
 	if err != nil || pIndex < 1 {
-		pIndex = 1
+		pIndex = 1 // default to first page
 	}
 
-	pSize, err := strconv.Atoi(pageindex)
-	if err != nil || pIndex < 1 {
-		pSize = 10
+	pSize, err := strconv.Atoi(pagesize)
+	if err != nil || pSize < 1 {
+		pSize = 10 // default page size
 	} else if pSize > 100 {
-		pSize = 100
+		pSize = 100 // maximum page size
 	}
-	var startswith = searchterm + "%"
-	var contains = "%" + searchterm + "%"
-	var endswith = "%" + searchterm
-	var offset = ((pIndex - 1) * pSize)
+
+	// Construct the search pattern to match any part of the name
+	searchPattern := "%" + searchterm + "%"
+
+	// Calculate the offset for pagination
+	offset := (pIndex - 1) * pSize
 
 	var products []models.Product
-	result := c.DB.WithContext(ctx).Where("name Like ? or name LIKE ? or name LIKE ?", startswith, contains, endswith).Limit(pSize).Offset(offset).Find(&products)
+
+	// Perform the database query with the LIKE pattern and pagination
+	result := c.DB.WithContext(ctx).
+		Where("name LIKE ?", searchPattern).
+		Limit(pSize).
+		Offset(offset).
+		Find(&products)
+
+	// Return the products and any error from the query
 	return products, result.Error
 }
 
