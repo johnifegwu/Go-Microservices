@@ -17,30 +17,30 @@ type DatabaseClient interface {
 	Ready() bool
 
 	SearchProducts(ctx context.Context, searchterm string, pageindex string, pagesize string) ([]models.Product, error)
-
 	GetAllProducts(ctx context.Context, pageIndex string, pageSize string) ([]models.Product, error)
-
-	GetProductById(ctx context.Context, productId string) (models.Product, error)
-
+	GetProductById(ctx context.Context, productId string) (*models.Product, error)
 	GetAllProductsByVendor(ctx context.Context, vendorID string, pageIndex string, pageSize string) ([]models.Product, error)
-
 	GetAllCustomers(ctx context.Context, email, pageindex, pagesize string) ([]models.Customer, error)
-
 	AddProduct(ctx context.Context, product *models.Product) (*models.Product, error)
-
 	UpdateProduct(ctx context.Context, product *models.Product) (*models.Product, error)
 
 	DeleteProduct(ctx context.Context, productId string) (int64, error)
-
+	GetCustomerById(ctx context.Context, customerId string) (*models.Customer, error)
 	AddCustomer(ctx context.Context, customer *models.Customer) (*models.Customer, error)
-
 	UpdateCustomer(ctx context.Context, customer *models.Customer) (*models.Customer, error)
-
 	DeleteCustomer(ctx context.Context, customerId string) (int64, error)
 
 	GetAllServices(ctx context.Context, pageIndex string, pageSize string) ([]models.Service, error)
+	GetServiceById(ctx context.Context, serviceId string) (*models.Service, error)
+	AddService(ctx context.Context, service *models.Service) (*models.Service, error)
+	UpdateService(ctx context.Context, service *models.Service) (*models.Service, error)
+	DeleteService(ctx context.Context, serviceid string) (int64, error)
 
 	GetAllVendors(ctx context.Context, pageIndex string, pageSize string) ([]models.Vendor, error)
+	GetVendorById(ctx context.Context, vendorId string) (*models.Vendor, error)
+	AddVendor(ctx context.Context, vendor *models.Vendor) (*models.Vendor, error)
+	UpdateVendor(ctx context.Context, vendor *models.Vendor) (*models.Vendor, error)
+	DeleteVendor(ctx context.Context, vendorId string) (int64, error)
 }
 
 type Client struct {

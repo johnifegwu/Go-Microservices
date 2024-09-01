@@ -9,6 +9,7 @@ import (
 	"github.com/johnifegwu/go-microservices/internal/dberrors"
 	"github.com/johnifegwu/go-microservices/internal/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (c Client) GetAllCustomers(ctx context.Context, email string, pageIndex string, pageSize string) ([]models.Customer, error) {
@@ -36,6 +37,28 @@ func (c Client) GetAllCustomers(ctx context.Context, email string, pageIndex str
 	return customers, result.Error
 }
 
+func (c Client) GetCustomerById(ctx context.Context, customerId string) (*models.Customer, error) {
+	// Parse the string into a uuid.UUID
+	parsedUUID, err := uuid.Parse(customerId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Query the Customer by id
+	customer := &models.Customer{}
+	result := c.DB.WithContext(ctx).Where(models.Customer{CustomerID: parsedUUID}).First(&customer)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, &dberrors.NotFoundError{Entity: "customer", ID: parsedUUID}
+		}
+		return nil, result.Error
+	}
+
+	return customer, result.Error
+}
+
 func (c Client) AddCustomer(ctx context.Context, customer *models.Customer) (*models.Customer, error) {
 	customer.CustomerID = uuid.Must(uuid.NewRandom())
 	result := c.DB.WithContext(ctx).
@@ -52,6 +75,7 @@ func (c Client) AddCustomer(ctx context.Context, customer *models.Customer) (*mo
 func (c Client) UpdateCustomer(ctx context.Context, customer *models.Customer) (*models.Customer, error) {
 
 	result := c.DB.WithContext(ctx).
+		Clauses(clause.Returning{}).
 		Save(&customer)
 
 	if result.Error != nil {

@@ -10,7 +10,7 @@ import (
 )
 
 func (s *EchoServer) SearchProducts(ctx echo.Context) error {
-	searchterm := ctx.QueryParam("searchterm")
+	searchterm := ctx.Param("searchterm")
 	pageindex := ctx.QueryParam("pageindex")
 	pagesize := ctx.QueryParam("pagesize")
 
@@ -33,7 +33,7 @@ func (s *EchoServer) GetAllProducts(ctx echo.Context) error {
 }
 
 func (s *EchoServer) GetProductById(ctx echo.Context) error {
-	id := ctx.QueryParam("id")
+	id := ctx.Param("id")
 	products, err := s.DB.GetProductById(ctx.Request().Context(), id)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
@@ -42,7 +42,7 @@ func (s *EchoServer) GetProductById(ctx echo.Context) error {
 }
 
 func (s *EchoServer) GetAllProductsByVendor(ctx echo.Context) error {
-	vendorid := ctx.QueryParam("id")
+	vendorid := ctx.Param("id")
 	pageindex := ctx.QueryParam("pageindex")
 	pagesize := ctx.QueryParam("pagesize")
 	products, err := s.DB.GetAllProductsByVendor(ctx.Request().Context(), vendorid, pageindex, pagesize)

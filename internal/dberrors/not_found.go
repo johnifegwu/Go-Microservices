@@ -1,10 +1,14 @@
 package dberrors
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type NotFoundError struct {
 	Entity string
-	ID     string
+	ID     uuid.UUID
 }
 
 func (e *NotFoundError) Error() string {

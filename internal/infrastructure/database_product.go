@@ -9,6 +9,7 @@ import (
 	"github.com/johnifegwu/go-microservices/internal/dberrors"
 	"github.com/johnifegwu/go-microservices/internal/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (c Client) SearchProducts(ctx context.Context, searchterm string, pageindex string, pagesize string) ([]models.Product, error) {
@@ -56,16 +57,23 @@ func (c Client) GetAllProducts(ctx context.Context, pageIndex string, pageSize s
 	return products, result.Error
 }
 
-func (c Client) GetProductById(ctx context.Context, productId string) (models.Product, error) {
+func (c Client) GetProductById(ctx context.Context, productId string) (*models.Product, error) {
 	// Parse the string into a uuid.UUID
 	parsedUUID, err := uuid.Parse(productId)
 
+	if err != nil {
+		return nil, err
+	}
+
 	// Query the product by product_id
-	var product models.Product
+	product := &models.Product{}
 	result := c.DB.WithContext(ctx).Where(models.Product{ProductID: parsedUUID}).First(&product)
 
-	if err != nil {
-		return product, err
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, &dberrors.NotFoundError{Entity: "product", ID: parsedUUID}
+		}
+		return nil, result.Error
 	}
 
 	return product, result.Error
@@ -119,7 +127,9 @@ func (c Client) AddProduct(ctx context.Context, product *models.Product) (*model
 
 func (c Client) UpdateProduct(ctx context.Context, product *models.Product) (*models.Product, error) {
 	// Update product
-	result := c.DB.WithContext(ctx).Save(&product)
+	result := c.DB.WithContext(ctx).
+		Clauses(clause.Returning{}).
+		Save(&product)
 
 	if result.Error != nil {
 		return nil, result.Error

@@ -21,6 +21,15 @@ func (s *EchoServer) GetAllCustomers(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, customers)
 }
 
+func (s *EchoServer) GetCustomerById(ctx echo.Context) error {
+	id := ctx.Param("id")
+	products, err := s.DB.GetCustomerById(ctx.Request().Context(), id)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	return ctx.JSON(http.StatusOK, products)
+}
+
 func (s *EchoServer) AddCustomer(ctx echo.Context) error {
 	customer := new(models.Customer)
 
