@@ -63,7 +63,7 @@ func (s *EchoServer) registerRoutes() {
 	pg := s.echo.Group("/products")
 	pg.GET("", s.GetAllProducts)
 	pg.GET("/productbyid", s.GetProductById)
-	pg.GET("/productsbyvendor", s.GetAllProductsByVendor)
+	pg.GET("/productsbyvendorid", s.GetAllProductsByVendor)
 
 	sg := s.echo.Group("/services")
 	sg.GET("", s.GetAllServices)
