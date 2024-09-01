@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/johnifegwu/go-microservices/internal/dberrors"
 	"github.com/johnifegwu/go-microservices/internal/models"
 	server "github.com/johnifegwu/go-microservices/internal/server/models"
@@ -53,6 +54,13 @@ func (s *EchoServer) UpdateService(ctx echo.Context) error {
 
 	if err := ctx.Bind(service); err != nil {
 		return ctx.JSON(http.StatusUnsupportedMediaType, err)
+	}
+
+	ID, errUUID := uuid.Parse(ctx.Param("service_id"))
+	if errUUID == nil {
+		if ID != service.ServiceID {
+			return ctx.JSON(http.StatusBadRequest, "id on path doesn't match id on body")
+		}
 	}
 
 	service, err := s.DB.UpdateService(ctx.Request().Context(), service)
