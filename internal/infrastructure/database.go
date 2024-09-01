@@ -16,15 +16,27 @@ import (
 type DatabaseClient interface {
 	Ready() bool
 
+	SearchProducts(ctx context.Context, searchterm string, pageindex string, pagesize string) ([]models.Product, error)
+
 	GetAllProducts(ctx context.Context, pageIndex string, pageSize string) ([]models.Product, error)
 
 	GetProductById(ctx context.Context, productId string) (models.Product, error)
 
 	GetAllProductsByVendor(ctx context.Context, vendorID string, pageIndex string, pageSize string) ([]models.Product, error)
 
-	GetAllCustomers(ctx context.Context, emailAddress string) ([]models.Customer, error)
+	GetAllCustomers(ctx context.Context, email, pageindex, pagesize string) ([]models.Customer, error)
+
+	AddProduct(ctx context.Context, product *models.Product) (*models.Product, error)
+
+	UpdateProduct(ctx context.Context, product *models.Product) (*models.Product, error)
+
+	DeleteProduct(ctx context.Context, productId string) (int64, error)
 
 	AddCustomer(ctx context.Context, customer *models.Customer) (*models.Customer, error)
+
+	UpdateCustomer(ctx context.Context, customer *models.Customer) (*models.Customer, error)
+
+	DeleteCustomer(ctx context.Context, customerId string) (int64, error)
 
 	GetAllServices(ctx context.Context, pageIndex string, pageSize string) ([]models.Service, error)
 

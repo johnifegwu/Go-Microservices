@@ -2,11 +2,36 @@ package database
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/johnifegwu/go-microservices/internal/dberrors"
 	"github.com/johnifegwu/go-microservices/internal/models"
+	"gorm.io/gorm"
 )
+
+func (c Client) SearchProducts(ctx context.Context, searchterm string, pageindex string, pagesize string) ([]models.Product, error) {
+	pIndex, err := strconv.Atoi(pageindex)
+	if err != nil || pIndex < 1 {
+		pIndex = 1
+	}
+
+	pSize, err := strconv.Atoi(pageindex)
+	if err != nil || pIndex < 1 {
+		pSize = 10
+	} else if pSize > 100 {
+		pSize = 100
+	}
+	var startswith = searchterm + "%"
+	var contains = "%" + searchterm + "%"
+	var endswith = "%" + searchterm
+	var offset = ((pIndex - 1) * pSize)
+
+	var products []models.Product
+	result := c.DB.WithContext(ctx).Where("name Like ? or name LIKE ? or name LIKE ?", startswith, contains, endswith).Limit(pSize).Offset(offset).Find(&products)
+	return products, result.Error
+}
 
 func (c Client) GetAllProducts(ctx context.Context, pageIndex string, pageSize string) ([]models.Product, error) {
 	// Default values for page and pageSize
@@ -18,6 +43,8 @@ func (c Client) GetAllProducts(ctx context.Context, pageIndex string, pageSize s
 	pSize, err := strconv.Atoi(pageSize)
 	if err != nil || pSize < 1 {
 		pSize = 10
+	} else if pSize > 100 {
+		pSize = 100
 	}
 
 	// Calculate the offset for SQL query
@@ -57,6 +84,8 @@ func (c Client) GetAllProductsByVendor(ctx context.Context, vendorID string, pag
 	pSize, err := strconv.Atoi(pageSize)
 	if err != nil || pSize < 1 {
 		pSize = 10
+	} else if pSize > 100 {
+		pSize = 100
 	}
 
 	// Calculate the offset for SQL query
@@ -71,4 +100,43 @@ func (c Client) GetAllProductsByVendor(ctx context.Context, vendorID string, pag
 	}
 
 	return products, result.Error
+}
+
+func (c Client) AddProduct(ctx context.Context, product *models.Product) (*models.Product, error) {
+	product.ProductID = uuid.Must(uuid.NewRandom())
+
+	//Create product
+	result := c.DB.WithContext(ctx).Create(&product)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return nil, &dberrors.ConflictError{}
+		}
+	}
+
+	return product, result.Error
+}
+
+func (c Client) UpdateProduct(ctx context.Context, product *models.Product) (*models.Product, error) {
+	// Update product
+	result := c.DB.WithContext(ctx).Save(&product)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return product, result.Error
+}
+
+func (c Client) DeleteProduct(ctx context.Context, productId string) (int64, error) {
+	// Parse the string into a uuid.UUID
+	parsedUUID, errUUID := uuid.Parse(productId)
+
+	if errUUID != nil {
+		return 0, errUUID
+	}
+	// Update product
+	result := c.DB.WithContext(ctx).Delete(&models.Product{}, parsedUUID)
+
+	return result.RowsAffected, result.Error
 }
