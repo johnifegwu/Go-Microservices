@@ -1,0 +1,711 @@
+definitions:
+  dberrors.ConflictError:
+    type: object
+  dberrors.ZeroRowsAffectedError:
+    type: object
+  models.Customer:
+    properties:
+      address:
+        type: string
+      customer_id:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+    type: object
+  models.Health:
+    properties:
+      status:
+        type: string
+    type: object
+  models.Product:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+      vendor_id:
+        type: string
+    type: object
+  models.Service:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+      service_id:
+        type: string
+    type: object
+  models.Vendor:
+    properties:
+      address:
+        type: string
+      contact:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      vendor_id:
+        type: string
+    type: object
+  server.Response:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /customers:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a customer from the database by its ID
+      parameters:
+      - description: Customer ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dberrors.ZeroRowsAffectedError'
+      summary: Delete a customer
+      tags:
+      - customers
+    get:
+      consumes:
+      - application/json
+      description: Get all customers with optional filtering by email, and pagination
+      parameters:
+      - description: Email address for filtering
+        in: query
+        name: email
+        type: string
+      - description: Page index for pagination
+        in: query
+        name: pageindex
+        type: string
+      - description: Page size for pagination
+        in: query
+        name: pagesize
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Customer'
+            type: array
+      summary: Get all customers
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      description: Add a new customer to the database
+      parameters:
+      - description: Customer to add
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/models.Customer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Customer'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dberrors.ConflictError'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Add a new customer
+      tags:
+      - customers
+  /customers/{customer_id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a customer's details by providing its ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customer_id
+        required: true
+        type: string
+      - description: Updated customer data
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/models.Customer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Customer'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Update an existing customer
+      tags:
+      - customers
+  /customers/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single customer by its ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Customer'
+      summary: Get customer by ID
+      tags:
+      - customers
+  /liveness:
+    get:
+      consumes:
+      - application/json
+      description: Check if the service is alive
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Health'
+      summary: Liveness probe
+      tags:
+      - health
+  /products:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a product from the database by its ID
+      parameters:
+      - description: Product ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dberrors.ZeroRowsAffectedError'
+      summary: Delete a product
+      tags:
+      - products
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all products with optional pagination
+      parameters:
+      - description: Page index for pagination
+        in: query
+        name: pageindex
+        type: string
+      - description: Page size for pagination
+        in: query
+        name: pagesize
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+      summary: Get all products
+      tags:
+      - products
+    post:
+      consumes:
+      - application/json
+      description: Add a new product to the database
+      parameters:
+      - description: Product to add
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/models.Product'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Product'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dberrors.ConflictError'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Add a new product
+      tags:
+      - products
+  /products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+      summary: Get product by ID
+      tags:
+      - products
+  /products/{product_id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a product's details by providing its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - description: Updated product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/models.Product'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Update an existing product
+      tags:
+      - products
+  /products/search/{searchterm}:
+    get:
+      consumes:
+      - application/json
+      description: Search for products by a search term with optional pagination
+      parameters:
+      - description: Search term
+        in: path
+        name: searchterm
+        required: true
+        type: string
+      - description: Page index for pagination
+        in: query
+        name: pageindex
+        type: string
+      - description: Page size for pagination
+        in: query
+        name: pagesize
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+      summary: Search products
+      tags:
+      - products
+  /products/vendor/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all products by a specific vendor with optional pagination
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page index for pagination
+        in: query
+        name: pageindex
+        type: string
+      - description: Page size for pagination
+        in: query
+        name: pagesize
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+      summary: Get all products by vendor
+      tags:
+      - products
+  /readiness:
+    get:
+      consumes:
+      - application/json
+      description: Check if the service is ready to accept requests
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Health'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Health'
+      summary: Readiness probe
+      tags:
+      - health
+  /services:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a service from the database by its ID
+      parameters:
+      - description: Service ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dberrors.ZeroRowsAffectedError'
+      summary: Delete a service
+      tags:
+      - services
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all services with optional pagination
+      parameters:
+      - description: Page index for pagination
+        in: query
+        name: pageindex
+        type: string
+      - description: Page size for pagination
+        in: query
+        name: pagesize
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Service'
+            type: array
+      summary: Get all services
+      tags:
+      - services
+    post:
+      consumes:
+      - application/json
+      description: Add a new service to the database
+      parameters:
+      - description: Service to add
+        in: body
+        name: service
+        required: true
+        schema:
+          $ref: '#/definitions/models.Service'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Service'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dberrors.ConflictError'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Add a new service
+      tags:
+      - services
+  /services/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single service by its ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Service'
+      summary: Get service by ID
+      tags:
+      - services
+  /services/{service_id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a service's details by providing its ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: service_id
+        required: true
+        type: string
+      - description: Updated service data
+        in: body
+        name: service
+        required: true
+        schema:
+          $ref: '#/definitions/models.Service'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Service'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Update an existing service
+      tags:
+      - services
+  /vendors:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a vendor from the database by its ID
+      parameters:
+      - description: Vendor ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dberrors.ZeroRowsAffectedError'
+      summary: Delete a vendor
+      tags:
+      - vendors
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all vendors with optional pagination
+      parameters:
+      - description: Page index for pagination
+        in: query
+        name: pageindex
+        type: string
+      - description: Page size for pagination
+        in: query
+        name: pagesize
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Vendor'
+            type: array
+      summary: Get all vendors
+      tags:
+      - vendors
+    post:
+      consumes:
+      - application/json
+      description: Create a new vendor in the database
+      parameters:
+      - description: Vendor to add
+        in: body
+        name: vendor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Vendor'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Vendor'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dberrors.ConflictError'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Add a new vendor
+      tags:
+      - vendors
+  /vendors/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a vendor by its ID
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Vendor'
+      summary: Get vendor by ID
+      tags:
+      - vendors
+  /vendors/{vendor_id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a vendor's details by providing its ID
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: vendor_id
+        required: true
+        type: string
+      - description: Updated vendor data
+        in: body
+        name: vendor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Vendor'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Vendor'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "415":
+          description: Unsupported Media Type
+          schema:
+            type: string
+      summary: Update an existing vendor
+      tags:
+      - vendors
+swagger: "2.0"

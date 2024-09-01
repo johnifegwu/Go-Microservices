@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"os"
 
+	_ "github.com/johnifegwu/go-microservices/docs" // Import the generated docs
 	database "github.com/johnifegwu/go-microservices/internal/infrastructure"
 	"github.com/johnifegwu/go-microservices/internal/models"
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger" // Import echo-swagger middleware
 )
 
 type Server interface {
@@ -42,9 +44,43 @@ type Server interface {
 	DeleteVendor(ctx echo.Context) error
 }
 
+// @title Echo Server API
+// @version 1.0
+// @description This is a sample server for managing customers, products, services, and vendors.
+// @host localhost:8080
+// @BasePath /
+
+// EchoServer represents the server
 type EchoServer struct {
 	echo *echo.Echo
 	DB   database.DatabaseClient
+}
+
+// @Summary Readiness probe
+// @Description Check if the service is ready to accept requests
+// @Tags health
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} models.Health
+// @Failure 500 {object} models.Health
+// @Router /readiness [get]
+func (s *EchoServer) Readiness(ctx echo.Context) error {
+	ready := s.DB.Ready()
+	if ready {
+		return ctx.JSON(http.StatusOK, models.Health{Status: "OK"})
+	}
+	return ctx.JSON(http.StatusInternalServerError, models.Health{Status: "Failure"})
+}
+
+// @Summary Liveness probe
+// @Description Check if the service is alive
+// @Tags health
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} models.Health
+// @Router /liveness [get]
+func (s *EchoServer) Liveness(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, models.Health{Status: "OK"})
 }
 
 func NewEchoServer(db database.DatabaseClient) Server {
@@ -70,6 +106,9 @@ func (s *EchoServer) Start() error {
 func (s *EchoServer) registerRoutes() {
 	s.echo.GET("/readiness", s.Readiness)
 	s.echo.GET("/liveness", s.Liveness)
+
+	// Serve the Swagger documentation
+	s.echo.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	cg := s.echo.Group("/customers")
 	cg.GET("", s.GetAllCustomers)
@@ -100,17 +139,4 @@ func (s *EchoServer) registerRoutes() {
 	vg.POST("", s.AddVendor)
 	vg.PUT("", s.UpdateVendor)
 	vg.DELETE("", s.DeleteVendor)
-
-}
-
-func (s *EchoServer) Readiness(ctx echo.Context) error {
-	ready := s.DB.Ready()
-	if ready {
-		return ctx.JSON(http.StatusOK, models.Health{Status: "OK"})
-	}
-	return ctx.JSON(http.StatusInternalServerError, models.Health{Status: "Failure"})
-}
-
-func (s *EchoServer) Liveness(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.Health{Status: "OK"})
 }
